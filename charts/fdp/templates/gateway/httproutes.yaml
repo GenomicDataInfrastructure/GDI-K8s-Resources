@@ -2,20 +2,25 @@
 {{- if .Values.gateway.traefik.enabled }}
 {{- range .Values.gateway.traefik.routes }}
 ---
-apiVersion: traefik.containo.us/v1alpha1
-kind: IngressRoute
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
 metadata:
   name: {{ include "fdp.fullname" $ }}-{{ .name }}
   labels:
     {{- include "fdp.labels" $ | nindent 4 }}
     app.kubernetes.io/component: gateway
 spec:
-  entryPoints:
-    - web
-  routes:
-    - match: Host(`{{ .host }}`) && PathPrefix(`{{ .pathPrefix }}`)
-      kind: Rule
-      services:
+  parentRefs:
+    - name: gateway
+      namespace: {{ .Release.Namespace }}
+  hostnames:
+    - {{ .host }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: {{ .pathPrefix }}
+      backendRefs:
         - name: {{ include "fdp.fullname" $ }}-{{ .service }}
           port: {{ .port }}
 {{- end }}

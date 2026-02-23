@@ -17,16 +17,16 @@ spec:
         {{- include "fdp.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: client
     spec:
-      containers:
-      - name: client
-        image: "{{ .Values.client.image.repository }}:{{ .Values.client.image.tag }}"
-        imagePullPolicy: {{ .Values.client.image.pullPolicy }}
-        ports:
-        - name: http
-          containerPort: {{ .Values.client.service.targetPort }}
-          protocol: TCP
-        env:
-        - name: FDP_HOST
-          value: {{ .Values.client.fdpHost | quote }}
-        resources:
+       containers:
+       - name: client
+         image: "{{ .Values.client.image.repository }}:{{ .Values.client.image.tag }}"
+         imagePullPolicy: {{ .Values.client.image.pullPolicy }}
+         ports:
+         - name: http
+           containerPort: {{ .Values.client.service.targetPort }}
+           protocol: TCP
+         env:
+         - name: FDP_HOST
+           value: {{ include "fdp.fullname" . }}-server:{{ .Values.server.service.port }}
+         resources:
           {{- toYaml .Values.client.resources | nindent 10 }}

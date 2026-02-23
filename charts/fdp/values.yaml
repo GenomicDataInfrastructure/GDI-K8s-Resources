@@ -83,8 +83,8 @@ client:
       memory: "512Mi"
       cpu: "250m"
   
-  # FDP Server connection
-  fdpHost: "fdp-server:80"
+   # FDP Server connection
+   # fdpHost is now dynamically set to the fdp-server service URL and should not be overridden
 
 # MongoDB configuration
 mongodb:

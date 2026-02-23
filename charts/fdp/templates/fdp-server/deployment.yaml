@@ -61,6 +61,10 @@ spec:
             secretKeyRef:
               name: {{ include "fdp.fullname" . }}-secrets
               key: GRAPHDB_PASSWORD
+        - name: FDP_HEALTH_SOLR
+          value: {{ .Values.server.env.healthSolrEnabled | quote }}
+        - name: FDP_INFO_ENABLED
+          value: {{ .Values.server.env.infoEnabled | quote }}
         resources:
           {{- toYaml .Values.server.resources | nindent 10 }}
         volumeMounts:

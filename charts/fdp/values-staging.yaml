@@ -1,0 +1,45 @@
+# Staging environment values
+# Overrides for staging deployment
+
+global:
+  environment: "staging"
+
+server:
+  env:
+    clientUrl: "https://gdi-fdp-client-staging.mmcbg.org"
+    title: "BG GDI STAGING FAIR Data Point"
+  
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+
+client:
+  fdpHost: "fdp-server:80"
+  
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+
+gateway:
+  enabled: true
+  traefik:
+    enabled: true
+    routes:
+      - name: fdp-frontend
+        service: fdp-client
+        port: 80
+        host: "gdi-fdp-client-staging.mmcbg.org"
+        pathPrefix: "/"
+      - name: fdp-server
+        service: fdp-server
+        port: 80
+        host: "gdi-fdp-server-staging.mmcbg.org"
+        pathPrefix: "/"

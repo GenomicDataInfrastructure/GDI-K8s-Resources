@@ -1,0 +1,156 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "fdp.fullname" . }}-graphdb
+  labels:
+    {{- include "fdp.labels" . | nindent 4 }}
+    app.kubernetes.io/component: graphdb
+spec:
+  serviceName: {{ include "fdp.fullname" . }}-graphdb
+  replicas: {{ .Values.graphdb.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "fdp.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: graphdb
+  template:
+    metadata:
+      labels:
+        {{- include "fdp.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: graphdb
+    spec:
+      initContainers:
+      - name: generate-repo-config
+        image: busybox:latest
+        command:
+        - sh
+        - -c
+        - |
+          cat > /repo-init/fdp-repository.ttl <<EOF
+          @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+          @prefix rep: <http://www.openrdf.org/config/repository#>.
+          @prefix sr: <http://www.openrdf.org/config/repository/sail#>.
+          @prefix sail: <http://www.openrdf.org/config/sail#>.
+          @prefix graphdb: <http://www.ontotext.com/config/graphdb#>.
+          
+          [] a rep:Repository ;
+              rep:repositoryID "${GRAPHDB_REPOSITORY_ID}" ;
+              rdfs:label "{{ .Values.graphdb.repository.title }}" ;
+              rep:repositoryImpl [
+                  rep:repositoryType "graphdb:SailRepository" ;
+                  sr:sailImpl [
+                      sail:sailType "graphdb:Sail" ;
+                      graphdb:read-only "{{ .Values.graphdb.repository.readOnly }}" ;
+                  ]
+              ].
+          EOF
+        env:
+        - name: GRAPHDB_REPOSITORY_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "fdp.fullname" . }}-secrets
+              key: GRAPHDB_REPOSITORY_ID
+        volumeMounts:
+        - name: repo-init
+          mountPath: /repo-init
+      containers:
+      - name: graphdb
+        image: "{{ .Values.graphdb.image.repository }}:{{ .Values.graphdb.image.tag }}"
+        imagePullPolicy: {{ .Values.graphdb.image.pullPolicy }}
+        ports:
+        - containerPort: 7200
+          name: http
+        env:
+        - name: GDB_JAVA_OPTS
+          value: {{ .Values.graphdb.javaOpts | quote }}
+        - name: GRAPHDB_REPOSITORY_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "fdp.fullname" . }}-secrets
+              key: GRAPHDB_REPOSITORY_ID
+        lifecycle:
+          postStart:
+            exec:
+              command:
+              - /bin/bash
+              - -c
+              - |
+                # Run initialization in background to not block container startup
+                (
+                  LOGFILE=/tmp/graphdb-init.log
+                  exec >> $LOGFILE 2>&1
+                  
+                  echo "$(date): Starting GraphDB repository initialization..."
+                  
+                  # Wait for GraphDB to be ready (max 5 minutes)
+                  COUNTER=0
+                  MAX_ATTEMPTS=60
+                  until curl -sf http://localhost:7200/rest/repositories > /dev/null 2>&1; do
+                    COUNTER=$((COUNTER+1))
+                    if [ $COUNTER -gt $MAX_ATTEMPTS ]; then
+                      echo "$(date): ERROR - GraphDB did not start within 5 minutes"
+                      exit 1
+                    fi
+                    echo "$(date): Waiting for GraphDB to start... (attempt $COUNTER/$MAX_ATTEMPTS)"
+                    sleep 5
+                  done
+                  
+                  echo "$(date): GraphDB is ready, checking for existing repositories..."
+                  
+                  # Check if repository already exists
+                  REPOS=$(curl -sf http://localhost:7200/rest/repositories)
+                  echo "$(date): Current repositories: $REPOS"
+                  
+                  REPO_ID="${GRAPHDB_REPOSITORY_ID:-fdp}"
+                  if echo "$REPOS" | grep -q "\"id\":\"$REPO_ID\""; then
+                    echo "$(date): Repository '$REPO_ID' already exists, skipping creation"
+                  else
+                    echo "$(date): Repository '$REPO_ID' not found, creating..."
+                    echo "$(date): Config file location: /opt/graphdb/home/work/init/fdp-repository.ttl"
+                    
+                    if [ ! -f /opt/graphdb/home/work/init/fdp-repository.ttl ]; then
+                      echo "$(date): ERROR - Config file not found!"
+                      exit 1
+                    fi
+                    
+                    echo "$(date): Config file contents:"
+                    cat /opt/graphdb/home/work/init/fdp-repository.ttl
+                    
+                    RESPONSE=$(curl -sf -X POST \
+                     -F "config=@/opt/graphdb/home/work/init/fdp-repository.ttl" \
+                     http://localhost:7200/rest/repositories 2>&1)
+                    
+                    echo "$(date): Repository creation response: $RESPONSE"
+                    
+                    # Verify creation
+                    sleep 2
+                    REPOS_AFTER=$(curl -sf http://localhost:7200/rest/repositories)
+                    echo "$(date): Repositories after creation: $REPOS_AFTER"
+                    
+                    if echo "$REPOS_AFTER" | grep -q "\"id\":\"$REPO_ID\""; then
+                      echo "$(date): Repository '$REPO_ID' created successfully"
+                    else
+                      echo "$(date): WARNING - Repository may not have been created successfully"
+                    fi
+                  fi
+                  
+                  echo "$(date): Initialization complete"
+                ) &
+        volumeMounts:
+        - name: graphdb-data
+          mountPath: /opt/graphdb/home
+        - name: repo-init
+          mountPath: /opt/graphdb/home/work/init
+        resources:
+          {{- toYaml .Values.graphdb.resources | nindent 10 }}
+      volumes:
+      - name: repo-init
+        emptyDir: {}
+  volumeClaimTemplates:
+  - metadata:
+      name: graphdb-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: {{ .Values.graphdb.persistence.storageClass | quote }}
+      resources:
+        requests:
+          storage: {{ .Values.graphdb.persistence.size | quote }}

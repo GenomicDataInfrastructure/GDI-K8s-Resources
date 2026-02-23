@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "fdp.fullname" . }}-server-config
+  labels:
+    {{- include "fdp.labels" . | nindent 4 }}
+    app.kubernetes.io/component: server
+data:
+  application.yml: |
+    instance:
+      clientUrl: {{ .Values.server.env.clientUrl | quote }}
+      persistentUrl: {{ .Values.server.env.persistentUrl | quote }}
+      title: {{ .Values.server.env.title | quote }}
+      description: {{ .Values.server.env.description | quote }}
+    
+    spring:
+      data:
+        mongodb:
+          uri: mongodb://${FDP_MONGO_USER:root}:${FDP_MONGO_PASSWORD:password}@${FDP_MONGO_HOST:mongodb}:${FDP_MONGO_PORT:27017}/${FDP_MONGO_DB:fdp}?authSource=admin
+    
+    repository:
+      type: 4
+      graphDb:
+        url: ${FDP_TRIPLE_STORE_URL:http://graphdb:7200}
+        repository: ${FDP_TRIPLE_STORE_REPOSITORY:fdp}
+        username: ${FDP_TRIPLE_STORE_USERNAME:}
+        password: ${FDP_TRIPLE_STORE_PASSWORD:}
+    
+    ping:
+      enabled: false

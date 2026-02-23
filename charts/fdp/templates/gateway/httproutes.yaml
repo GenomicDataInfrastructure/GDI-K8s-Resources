@@ -1,0 +1,23 @@
+{{- if .Values.gateway.enabled }}
+{{- if .Values.gateway.traefik.enabled }}
+{{- range .Values.gateway.traefik.routes }}
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ include "fdp.fullname" $ }}-{{ .name }}
+  labels:
+    {{- include "fdp.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: gateway
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`{{ .host }}`) && PathPrefix(`{{ .pathPrefix }}`)
+      kind: Rule
+      services:
+        - name: {{ include "fdp.fullname" $ }}-{{ .service }}
+          port: {{ .port }}
+{{- end }}
+{{- end }}
+{{- end }}

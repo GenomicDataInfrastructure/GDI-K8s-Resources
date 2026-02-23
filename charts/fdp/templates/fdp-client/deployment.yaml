@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "fdp.fullname" . }}-client
+  labels:
+    {{- include "fdp.labels" . | nindent 4 }}
+    app.kubernetes.io/component: client
+spec:
+  replicas: {{ .Values.client.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "fdp.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: client
+  template:
+    metadata:
+      labels:
+        {{- include "fdp.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: client
+    spec:
+      containers:
+      - name: client
+        image: "{{ .Values.client.image.repository }}:{{ .Values.client.image.tag }}"
+        imagePullPolicy: {{ .Values.client.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.client.service.targetPort }}
+          protocol: TCP
+        env:
+        - name: FDP_HOST
+          value: {{ .Values.client.fdpHost | quote }}
+        resources:
+          {{- toYaml .Values.client.resources | nindent 10 }}

@@ -1,0 +1,215 @@
+# Default values for fdp chart
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Global settings
+global:
+  # Common labels to add to all resources
+  labels: {}
+  # Namespace to deploy to (leave empty to use current namespace)
+  namespace: ""
+  # Environment name (dev, staging, prod)
+  environment: "dev"
+
+# FDP Server configuration
+server:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: fairdata/fairdatapoint
+    tag: "1.18"
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8080
+  
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+  
+  # Environment variables
+  env:
+    clientUrl: "https://gdi-fdp-client-dev.mmcbg.org"
+    persistentUrl: "https://purl.org/fairdatapoint/example"
+    title: "BG GDI DEV FAIR Data Point"
+    description: "A FAIR Data Point instance for development and testing purposes."
+  
+  # MongoDB connection
+  mongo:
+    host: "fdp-mongodb"
+    port: 27017
+    database: "fdp"
+    username: "admin"
+    password: ""
+  
+  # GraphDB connection
+  graphdb:
+    url: "http://fdp-graphdb:7200"
+    repository: "fdp"
+    username: ""
+    password: ""
+  
+  # JWT configuration
+  jwt:
+    secretKey: ""
+
+# FDP Client configuration
+client:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: fairdata/fairdatapoint-client
+    tag: "1.18"
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 80
+  
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "250m"
+  
+  # FDP Server connection
+  fdpHost: "fdp-server:80"
+
+# MongoDB configuration
+mongodb:
+  enabled: true
+  # Use embedded MongoDB or external
+  useExternal: false
+  
+  # External MongoDB configuration (if useExternal: true)
+  external:
+    host: ""
+    port: 27017
+    username: ""
+    password: ""
+    database: "fdp"
+  
+  # Embedded MongoDB configuration
+  image:
+    repository: mongo
+    tag: "6.0"
+    pullPolicy: IfNotPresent
+  
+  architecture: standalone
+  auth:
+    enabled: true
+    rootUser: "admin"
+    rootPassword: ""
+    username: ""
+    password: ""
+    database: "fdp"
+  
+  persistence:
+    enabled: true
+    storageClass: "harvester-longhorn"
+    size: "10Gi"
+  
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+
+# GraphDB configuration
+graphdb:
+  enabled: true
+  # Use embedded GraphDB or external
+  useExternal: false
+  
+  # External GraphDB configuration (if useExternal: true)
+  external:
+    url: ""
+    repository: "fdp"
+    username: ""
+    password: ""
+  
+  # Embedded GraphDB configuration
+  image:
+    repository: ontotext/graphdb
+    tag: "10.7.6"
+    pullPolicy: IfNotPresent
+  
+  javaOpts: "-Xms1g -Xmx2g"
+  
+  persistence:
+    enabled: true
+    storageClass: "harvester-longhorn"
+    size: "5Gi"
+  
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "500m"
+    limits:
+      memory: "4Gi"
+      cpu: "1000m"
+  
+  # Repository configuration
+  repository:
+    id: "fdp"
+    title: "FDP Repository"
+    readOnly: false
+  
+  # Admin credentials
+  admin:
+    username: "admin"
+    password: ""
+
+# Gateway/HTTPRoute configuration (optional)
+gateway:
+  enabled: false
+  # Traefik gateway configuration
+  traefik:
+    enabled: false
+    routes:
+      - name: fdp-frontend
+        service: fdp-client
+        port: 80
+        host: "gdi-fdp-client-dev.mmcbg.org"
+        pathPrefix: "/"
+      - name: fdp-server
+        service: fdp-server
+        port: 80
+        host: "gdi-fdp-server-dev.mmcbg.org"
+        pathPrefix: "/"
+
+# Ingress configuration (alternative to gateway)
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+# Monitoring configuration
+monitoring:
+  enabled: false
+  # Prometheus annotations
+  prometheus:
+    enabled: false
+    port: 8080
+    path: "/actuator/prometheus"
+
+# Network policies
+networkPolicies:
+  enabled: false

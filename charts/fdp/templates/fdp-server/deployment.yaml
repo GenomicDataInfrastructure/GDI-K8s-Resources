@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "fdp.fullname" . }}-server
+  labels:
+    {{- include "fdp.labels" . | nindent 4 }}
+    app.kubernetes.io/component: server
+spec:
+  replicas: {{ .Values.server.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "fdp.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: server
+  template:
+    metadata:
+      labels:
+        {{- include "fdp.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: server
+    spec:
+      containers:
+      - name: server
+        image: "{{ .Values.server.image.repository }}:{{ .Values.server.image.tag }}"
+        imagePullPolicy: {{ .Values.server.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.server.service.targetPort }}
+          protocol: TCP
+        env:
+        - name: FDP_JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "fdp.fullname" . }}-secrets
+              key: JWT_SECRET_KEY
+        - name: FDP_MONGO_HOST
+          value: {{ .Values.server.mongo.host | quote }}
+        - name: FDP_MONGO_PORT
+          value: {{ .Values.server.mongo.port | quote }}
+        - name: FDP_MONGO_DB
+          value: {{ .Values.server.mongo.database | quote }}
+        - name: FDP_MONGO_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "fdp.fullname" . }}-secrets
+              key: MONGODB_ROOT_USERNAME
+        - name: FDP_MONGO_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "fdp.fullname" . }}-secrets
+              key: MONGODB_ROOT_PASSWORD
+        - name: FDP_TRIPLE_STORE_URL
+          value: {{ .Values.server.graphdb.url | quote }}
+        - name: FDP_TRIPLE_STORE_REPOSITORY
+          value: {{ .Values.server.graphdb.repository | quote }}
+        - name: FDP_TRIPLE_STORE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "fdp.fullname" . }}-secrets
+              key: GRAPHDB_USERNAME
+        - name: FDP_TRIPLE_STORE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "fdp.fullname" . }}-secrets
+              key: GRAPHDB_PASSWORD
+        resources:
+          {{- toYaml .Values.server.resources | nindent 10 }}
+        volumeMounts:
+        - name: config
+          mountPath: /fdp/application.yml
+          subPath: application.yml
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: {{ include "fdp.fullname" . }}-server-config

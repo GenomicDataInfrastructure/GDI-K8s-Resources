@@ -1,0 +1,10 @@
+apiVersion: v2
+name: fdp
+description: FAIR Data Point Helm chart for Kubernetes
+version: 0.1.0
+appVersion: "1.18"
+type: application
+maintainers:
+  - name: FDP Maintainers
+    email: it@mmcbg.org
+kubeVersion: ">=1.19.0"

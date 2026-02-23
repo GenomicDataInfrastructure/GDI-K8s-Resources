@@ -291,6 +291,70 @@ To add new components to the chart:
 3. Update the documentation
 4. Test the new component thoroughly
 
+### Password Security Guidelines
+
+The chart includes password validation to prevent common issues with special characters that can break database connections, particularly with MongoDB.
+
+#### Problematic Characters
+
+Avoid using these characters in passwords as they may cause connection issues:
+- `%` (percentage) - Can break URI encoding
+- `\` (backslash) - Can cause escaping issues  
+- `"` (double quote) - Can break YAML/JSON parsing
+- `$` (dollar sign) - Can cause template interpolation issues
+- `'` (single quote) - Can break shell commands
+
+#### Password Validation Configuration
+
+The chart provides configurable password validation:
+
+```yaml
+mongodb:
+  auth:
+    passwordValidation:
+      # strict: true  # Set to true to fail installation on problematic passwords
+      strict: false  # Shows warnings but allows installation
+      problematicChars:
+        - "%"
+        - "\\"
+        - "\""
+        - "$"
+        - "'"
+      minLength: 12
+```
+
+#### Generating Safe Passwords
+
+Use these commands to generate safe passwords:
+
+```bash
+# Generate a 32-character safe password (recommended)
+openssl rand -base64 32 | tr -d '/+' | head -c 32 ; echo
+
+# Generate a password with only alphanumeric and safe special characters
+openssl rand -base64 32 | tr -d '/+=%\\"$'"'" | head -c 32 ; echo
+
+# Generate a password and validate it
+PASSWORD=$(openssl rand -base64 32 | tr -d '/+=%\\"$'"'" | head -c 32 ; echo)
+echo "Generated password: $PASSWORD"
+```
+
+#### Troubleshooting Password Issues
+
+If you encounter connection issues:
+
+1. **Check for special characters**: Ensure your password doesn't contain `%`, `\`, `"`, `$`, or `'`
+2. **Test with a simple password**: Try a simple alphanumeric password to isolate the issue
+3. **Check logs**: `kubectl logs -l app.kubernetes.io/name=fdp-mongodb --namespace fdp`
+4. **Enable strict mode**: Set `mongodb.auth.passwordValidation.strict: true` to catch issues early
+
+#### Best Practices
+
+- Use passwords of at least 12 characters
+- Include a mix of uppercase, lowercase, numbers, and safe special characters
+- Avoid characters that have special meaning in URLs, shells, or regular expressions
+- Rotate passwords regularly in production environments
+
 ## Support
 
 For issues with the Helm chart:

@@ -112,6 +112,22 @@ mongodb:
     username: ""
     password: ""
     database: "fdp"
+    
+    # Password validation settings
+    passwordValidation:
+      # Set to true to fail installation if problematic characters are detected
+      # Set to false to show warnings but allow installation
+      strict: false
+      # List of problematic characters that may cause issues with MongoDB
+      # These characters can break connection strings or cause escaping issues
+      problematicChars:
+        - "%"
+        - "\\"
+        - "\""
+        - "$"
+        - "'"
+      # Minimum password length recommendation
+      minLength: 12
   
   persistence:
     enabled: true

@@ -220,6 +220,38 @@ kubectl describe pods -l app.kubernetes.io/name=fdp --namespace fdp
 5. Test template rendering
 6. Document changes
 
+### Git Workflow Guidelines
+
+1. **Commit Message Format**: Use gitmoji conventions for all commit messages
+   - Example: `:bug: Fix namespace reference in HTTPRoute template`
+   - Example: `:sparkles: Add new gateway configuration options`
+   - Example: `:memo: Update documentation for MongoDB setup`
+   - Common gitmoji:
+     - `:bug:` for bug fixes
+     - `:sparkles:` for new features
+     - `:memo:` for documentation changes
+     - `:wrench:` for configuration changes
+     - `:arrow_up:` for dependency updates
+     - `:recycle:` for refactoring
+     - `:bookmark:` for version releases
+
+2. **Branch Strategy**: 
+   - NEVER push changes directly to the `main` branch unless explicitly asked
+   - Create feature branches for all changes (e.g., `feature/gateway-fix`, `bug/httproute-namespace`)
+   - Use descriptive branch names that follow kebab-case convention
+
+3. **Pull Request Process**:
+   - Create pull requests for all changes
+   - Include clear descriptions of what was changed and why
+   - Reference related issues or tickets
+   - Wait for review and approval before merging
+
+4. **Commit Hygiene**:
+   - Make atomic commits (one logical change per commit)
+   - Write clear, concise commit messages
+   - Include relevant context in commit messages
+   - Never commit secrets, credentials, or sensitive information
+
 ## Environment-Specific Notes
 
 ### Development Environment

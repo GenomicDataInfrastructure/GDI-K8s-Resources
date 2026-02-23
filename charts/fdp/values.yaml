@@ -197,15 +197,12 @@ gateway:
     gatewayNamespace: ""
     # Gateway resource name
     gatewayName: "gateway"
-    routes:
-      - name: fdp-frontend
-        service: fdp-client
-        port: 80
-        host: "gdi-fdp-client-dev.mmcbg.org"
-        pathPrefix: "/"
-        # Optional per-route gateway namespace override
-        gatewayNamespace: ""
-        gatewayName: "gateway"
+    # Single client route configuration (replaces routes array to ensure only one HTTPRoute)
+    clientRoute:
+      enabled: false  # Set to true to create the HTTPRoute
+      # host: "your-fdp-client-hostname.example.com"  # Required - no default provided
+      port: 80
+      pathPrefix: "/"
 
 # Ingress configuration (alternative to gateway)
 ingress:

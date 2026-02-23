@@ -22,10 +22,9 @@ gateway:
     enabled: true
     # Namespace where the gateway resource is located
     gatewayNamespace: "gdi-containers-dev"
-    routes:
-      - name: fdp-frontend
-        service: fdp-client
-        port: 80
-        host: "gdi-fdp-client-dev.mmcbg.org"
-        pathPrefix: "/"
-        gatewayNamespace: "gdi-containers-dev"
+    # Single client route configuration
+    clientRoute:
+      enabled: true
+      host: "gdi-fdp-client-dev.mmcbg.org"  # Specific to MMC development environment
+      port: 80
+      pathPrefix: "/"

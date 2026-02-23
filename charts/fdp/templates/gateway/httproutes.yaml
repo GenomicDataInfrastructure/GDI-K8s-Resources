@@ -1,28 +1,25 @@
-{{- if .Values.gateway.enabled }}
-{{- if .Values.gateway.traefik.enabled }}
-{{- range .Values.gateway.traefik.routes }}
+{{- /* Single HTTPRoute for FDP client - no loop to ensure only one route */ -}}
+{{- if and .Values.gateway.enabled .Values.gateway.traefik.enabled .Values.gateway.traefik.clientRoute.enabled }}
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: {{ include "fdp.fullname" $ }}-{{ .name }}
+  name: {{ include "fdp.fullname" . }}-client
   labels:
-    {{- include "fdp.labels" $ | nindent 4 }}
+    {{- include "fdp.labels" . | nindent 4 }}
     app.kubernetes.io/component: gateway
 spec:
   parentRefs:
-    - name: {{ .gatewayName | default $.Values.gateway.traefik.gatewayName | default "gateway" }}
-      namespace: {{ .gatewayNamespace | default $.Values.gateway.traefik.gatewayNamespace | default $.Release.Namespace }}
+    - name: {{ .Values.gateway.traefik.gatewayName | default "gateway" }}
+      namespace: {{ .Values.gateway.traefik.gatewayNamespace | default .Release.Namespace }}
   hostnames:
-    - {{ .host }}
+    - {{ .Values.gateway.traefik.clientRoute.host | required "gateway.traefik.clientRoute.host is required" }}
   rules:
     - matches:
         - path:
             type: PathPrefix
-            value: {{ .pathPrefix }}
+            value: {{ .Values.gateway.traefik.clientRoute.pathPrefix | default "/" }}
       backendRefs:
-        - name: {{ .service }}
-          port: {{ .port }}
-{{- end }}
-{{- end }}
+        - name: fdp-client
+          port: {{ .Values.gateway.traefik.clientRoute.port | default 80 }}
 {{- end }}

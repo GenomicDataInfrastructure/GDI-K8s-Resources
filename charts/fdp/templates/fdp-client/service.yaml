@@ -7,6 +7,9 @@ metadata:
     app.kubernetes.io/component: client
 spec:
   type: {{ .Values.client.service.type }}
+  {{- if eq .Values.client.service.clusterIP "None" }}
+  clusterIP: None
+  {{- end }}
   ports:
     - port: {{ .Values.client.service.port }}
       targetPort: {{ .Values.client.service.targetPort }}

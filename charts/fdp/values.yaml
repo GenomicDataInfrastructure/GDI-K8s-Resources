@@ -22,6 +22,7 @@ server:
   
   service:
     type: ClusterIP
+    clusterIP: "None"  # Headless service for direct pod access
     port: 80
     targetPort: 8080
   
@@ -70,6 +71,7 @@ client:
   
   service:
     type: ClusterIP
+    clusterIP: "None"  # Headless service for direct pod access
     port: 80
     targetPort: 80
   

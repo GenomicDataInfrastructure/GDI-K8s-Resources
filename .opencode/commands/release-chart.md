@@ -57,7 +57,7 @@ This command handles the complete Helm chart release workflow:
 
 ## Implementation
 
-```bash
+The implementation follows the logic described above. The command is designed to be safe and provide clear feedback at each step of the process.
 #!/bin/bash
 
 # Slash Command: release-chart

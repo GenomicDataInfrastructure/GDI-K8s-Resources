@@ -69,7 +69,7 @@ When no commit message is provided, the command generates one using:
 
 ## Implementation
 
-```bash
+The implementation follows the logic described above. The command is designed to be safe and provide clear feedback at each step of the process.
 #!/bin/bash
 
 # Slash Command: commit-and-push

@@ -20,14 +20,12 @@ gateway:
   enabled: true
   traefik:
     enabled: true
+    # Namespace where the gateway resource is located
+    gatewayNamespace: "gdi-containers-dev"
     routes:
       - name: fdp-frontend
         service: fdp-client
         port: 80
         host: "gdi-fdp-client-dev.mmcbg.org"
         pathPrefix: "/"
-      - name: fdp-server
-        service: fdp-server
-        port: 80
-        host: "gdi-fdp-server-dev.mmcbg.org"
-        pathPrefix: "/"
+        gatewayNamespace: "gdi-containers-dev"

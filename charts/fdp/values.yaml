@@ -193,17 +193,19 @@ gateway:
   # Traefik gateway configuration
   traefik:
     enabled: false
+    # Namespace where the gateway resource is located (if different from release namespace)
+    gatewayNamespace: ""
+    # Gateway resource name
+    gatewayName: "gateway"
     routes:
       - name: fdp-frontend
         service: fdp-client
         port: 80
         host: "gdi-fdp-client-dev.mmcbg.org"
         pathPrefix: "/"
-      - name: fdp-server
-        service: fdp-server
-        port: 80
-        host: "gdi-fdp-server-dev.mmcbg.org"
-        pathPrefix: "/"
+        # Optional per-route gateway namespace override
+        gatewayNamespace: ""
+        gatewayName: "gateway"
 
 # Ingress configuration (alternative to gateway)
 ingress:

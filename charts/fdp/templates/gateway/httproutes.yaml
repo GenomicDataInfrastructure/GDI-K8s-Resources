@@ -11,8 +11,8 @@ metadata:
     app.kubernetes.io/component: gateway
 spec:
   parentRefs:
-    - name: gateway
-      namespace: {{ $.Release.Namespace }}
+    - name: {{ .gatewayName | default $.Values.gateway.traefik.gatewayName | default "gateway" }}
+      namespace: {{ .gatewayNamespace | default $.Values.gateway.traefik.gatewayNamespace | default $.Release.Namespace }}
   hostnames:
     - {{ .host }}
   rules:
@@ -21,7 +21,7 @@ spec:
             type: PathPrefix
             value: {{ .pathPrefix }}
       backendRefs:
-        - name: {{ include "fdp.fullname" $ }}-{{ .service }}
+        - name: {{ .service }}
           port: {{ .port }}
 {{- end }}
 {{- end }}

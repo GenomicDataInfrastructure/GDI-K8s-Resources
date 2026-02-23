@@ -3,6 +3,20 @@ entries:
   fdp:
   - apiVersion: v2
     appVersion: "1.18"
+    created: "2026-02-23T15:52:35.721433647Z"
+    description: FAIR Data Point Helm chart for Kubernetes
+    digest: ed858c7b3a920620d0726ccdd3869c1629271aedd477ae9fa489968ec1f6d06b
+    kubeVersion: '>=1.19.0'
+    maintainers:
+    - email: it@mmcbg.org
+      name: FDP Maintainers
+    name: fdp
+    type: application
+    urls:
+    - https://github.com/GenomicDataInfrastructure/GDI-K8s-Resources/releases/download/fdp-0.1.7/fdp-0.1.7.tgz
+    version: 0.1.7
+  - apiVersion: v2
+    appVersion: "1.18"
     created: "2026-02-23T12:49:55.621521433Z"
     description: FAIR Data Point Helm chart for Kubernetes
     digest: 7911f33e13c86e27fe8320c6901a60960e57d56c1d4c1b3c66573f0c75cc8ef5
@@ -99,4 +113,4 @@ entries:
     urls:
     - https://github.com/GenomicDataInfrastructure/GDI-K8s-Resources/releases/download/fdp-0.1.0/fdp-0.1.0.tgz
     version: 0.1.0
-generated: "2026-02-23T12:49:55.621553803Z"
+generated: "2026-02-23T15:52:35.721463131Z"

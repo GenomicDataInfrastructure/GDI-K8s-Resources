@@ -12,6 +12,9 @@ spec:
   parentRefs:
     - name: {{ .Values.gateway.traefik.gatewayName | default "gateway" }}
       namespace: {{ .Values.gateway.traefik.gatewayNamespace | default .Release.Namespace }}
+      {{- if .Values.gateway.traefik.sectionName }}
+      sectionName: {{ .Values.gateway.traefik.sectionName }}
+      {{- end }}
   hostnames:
     - {{ .Values.gateway.traefik.clientRoute.host | required "gateway.traefik.clientRoute.host is required" }}
   rules:

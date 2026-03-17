@@ -101,6 +101,9 @@ The following table lists the configurable parameters of the FDP chart and their
 | `client.service.port` | Service port | `80` |
 | `client.service.targetPort` | Target port | `80` |
 | `client.resources` | Resource requests/limits | See values.yaml |
+| `client.healthCheck.enabled` | Enable readiness/liveness probes | `true` |
+| `client.healthCheck.readiness.*` | Readiness probe configuration | See values.yaml |
+| `client.healthCheck.liveness.*` | Liveness probe configuration | See values.yaml |
 | `client.fdpHost` | FDP Server host | `"fdp-server:80"` |
 
 ### MongoDB Parameters
@@ -153,6 +156,46 @@ The following table lists the configurable parameters of the FDP chart and their
 | `gateway.enabled` | Enable gateway | `false` |
 | `gateway.traefik.enabled` | Enable Traefik routes | `false` |
 | `gateway.traefik.routes` | Traefik route configurations | See values-dev.yaml |
+
+
+### FDP Client Health Checks
+
+The FDP Client includes liveness and readiness probes to ensure Kubernetes properly manages the pod lifecycle. The probes are enabled by default.
+
+**Readiness Probe:**
+- Checks if the FDP Client HTTP endpoint is responding
+- Initial delay: 20 seconds (allows startup time)
+- Period: Every 10 seconds
+- Timeout: 5 seconds
+- Failures before marking unready: 10 attempts
+
+**Liveness Probe (ensures pod recovery):**
+- Checks if the FDP Client is still responsive
+- Initial delay: 30 seconds
+- Period: Every 10 seconds
+- Timeout: 5 seconds
+- Failures before restarting pod: 3 attempts
+
+**Important Note on MongoDB Initialization:**
+The MongoDB post-install Job has a hook-weight of 100, ensuring it only runs **after** the FDP Client deployment is complete and all health checks pass. This guarantees database initialization happens once the system is ready.
+
+To customize health check behavior:
+
+```yaml
+client:
+  healthCheck:
+    enabled: true          # Set to false to disable all health checks
+    readiness:
+      initialDelaySeconds: 20
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 10
+    liveness:
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+```
 
 ## Upgrading
 

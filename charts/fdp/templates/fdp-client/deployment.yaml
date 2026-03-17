@@ -28,5 +28,23 @@ spec:
          env:
          - name: FDP_HOST
            value: {{ include "fdp.fullname" . }}-server:{{ .Values.server.service.port }}
+         {{- if .Values.client.healthCheck.enabled }}
+         readinessProbe:
+           httpGet:
+             path: /
+             port: http
+           initialDelaySeconds: {{ .Values.client.healthCheck.readiness.initialDelaySeconds }}
+           periodSeconds: {{ .Values.client.healthCheck.readiness.periodSeconds }}
+           timeoutSeconds: {{ .Values.client.healthCheck.readiness.timeoutSeconds }}
+           failureThreshold: {{ .Values.client.healthCheck.readiness.failureThreshold }}
+         livenessProbe:
+           httpGet:
+             path: /
+             port: http
+           initialDelaySeconds: {{ .Values.client.healthCheck.liveness.initialDelaySeconds }}
+           periodSeconds: {{ .Values.client.healthCheck.liveness.periodSeconds }}
+           timeoutSeconds: {{ .Values.client.healthCheck.liveness.timeoutSeconds }}
+           failureThreshold: {{ .Values.client.healthCheck.liveness.failureThreshold }}
+         {{- end }}
          resources:
           {{- toYaml .Values.client.resources | nindent 10 }}

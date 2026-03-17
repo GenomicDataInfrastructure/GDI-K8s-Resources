@@ -85,6 +85,22 @@ client:
       memory: "512Mi"
       cpu: "250m"
   
+  # Health checks for the FDP Client container
+  healthCheck:
+    enabled: true
+    # Readiness probe - checks if container is ready to serve traffic
+    readiness:
+      initialDelaySeconds: 20
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 10
+    # Liveness probe - checks if container needs to be restarted
+    liveness:
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+  
   # FDP Server connection
   # fdpHost is now dynamically set to the fdp-server service URL and should not be overridden
 
